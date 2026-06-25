@@ -1156,6 +1156,7 @@ async function openClientInvoicesModal(client) {
           <td>
             <button class="btn-icon btn-tbl-edit" title="Edit/View"><i class="ph-bold ph-pencil-simple"></i></button>
             <button class="btn-icon btn-tbl-dl" title="Download PDF"><i class="ph-bold ph-download-simple"></i></button>
+            <button class="btn-icon btn-tbl-delete" title="Delete" style="color:var(--color-danger);"><i class="ph-bold ph-trash"></i></button>
           </td>
         `;
 
@@ -1168,6 +1169,20 @@ async function openClientInvoicesModal(client) {
         // Download button click
         tr.querySelector('.btn-tbl-dl').addEventListener('click', async () => {
           await downloadSingleInvoicePDFById(inv.id);
+        });
+
+        // Delete button click
+        tr.querySelector('.btn-tbl-delete').addEventListener('click', async () => {
+          if (confirm(`Are you sure you want to delete invoice ${inv.invoice_number}?`)) {
+            await deleteInvoice(inv.id, inv.invoice_number);
+            // Refresh modal contents by reopening/reloading client data
+            const updatedClient = clientsList.find(c => c.id === client.id);
+            if (updatedClient) {
+              await openClientInvoicesModal(updatedClient);
+            } else {
+              modal.classList.remove('show');
+            }
+          }
         });
 
         // Status change listener
@@ -1603,6 +1618,9 @@ async function deleteInvoice(id, invoiceNumber) {
       
       // Update Dashboard counts/charts
       await fetchDashboardStats();
+
+      // Update Clients list
+      await loadClientsList();
     } else {
       const err = await res.json();
       showToast(err.error || 'Failed to delete invoice.', 'error');
