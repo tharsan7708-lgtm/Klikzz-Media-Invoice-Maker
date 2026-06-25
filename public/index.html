@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klikzz Media - Invoice Maker</title>
+  <!-- Google Fonts: Inter and Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/logo.png" alt="Klikzz Media Logo" class="brand-logo">
+        <div class="brand-details">
+          <span class="brand-name">Klikzz Media</span>
+          <span class="brand-location">Tiruppur</span>
+        </div>
+      </div>
+      <nav class="sidebar-menu">
+        <button class="menu-item active" data-target="dashboard-view" id="nav-dashboard">
+          <i class="ph-bold ph-chart-pie-slice"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="menu-item" data-target="invoice-maker-view" id="nav-invoice-maker">
+          <i class="ph-bold ph-receipt"></i>
+          <span>Invoice Maker</span>
+        </button>
+        <button class="menu-item" data-target="clients-view" id="nav-clients">
+          <i class="ph-bold ph-users-three"></i>
+          <span>Clients</span>
+        </button>
+        <button class="menu-item" data-target="template-editor-view" id="nav-template-editor">
+          <i class="ph-bold ph-layout"></i>
+          <span>Template Editor</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <i class="ph-bold ph-user-circle"></i>
+          <div class="user-info">
+            <span class="user-name">Tharsan V</span>
+            <span class="user-role">Administrator</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-bar">
+        <div class="page-title-container">
+          <h1 id="current-view-title">Dashboard</h1>
+          <p class="current-date" id="live-date">Thursday, 11 June 2026</p>
+        </div>
+        <div class="top-bar-actions">
+          <div id="autosave-indicator" class="autosave-status hide">
+            <i class="ph-bold ph-cloud-check"></i>
+            <span>Draft auto-saved</span>
+          </div>
+          <button class="btn btn-primary" id="btn-quick-invoice">
+            <i class="ph-bold ph-plus-circle"></i>
+            <span>Create Invoice</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="view-viewport">
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="dashboard-view" class="view-section active">
+          <!-- Filters -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="dash-filter-month"><i class="ph ph-calendar-blank"></i> Month</label>
+              <select id="dash-filter-month">
+                <option value="all">All Months</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="dash-filter-year"><i class="ph ph-calendar"></i> Year</label>
+              <select id="dash-filter-year">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Cards Row -->
+          <div class="stats-grid">
+            <div class="stat-card billed">
+              <div class="stat-icon">
+                <i class="ph-bold ph-currency-inr"></i>
+              </div>
+              <div class="stat-details">
+                <span class="stat-label">Total Billed</span>
+                <span class="stat-value" id="stat-total-billed">₹0.00</span>
+              </div>
+            </div>
+            <div class="stat-card received">
+              <div class="stat-icon">
+                <i class="ph-bold ph-check-circle"></i>
+              </div>
+              <div class="stat-details">
+                <span class="stat-label">Total Received</span>
+                <span class="stat-value" id="stat-total-received">₹0.00</span>
+              </div>
+            </div>
+            <div class="stat-card outstanding">
+              <div class="stat-icon">
+                <i class="ph-bold ph-clock-countdown"></i>
+              </div>
+              <div class="stat-details">
+                <span class="stat-label">Total Outstanding</span>
+                <span class="stat-value" id="stat-total-outstanding">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart & Table Grid -->
+          <div class="dashboard-grid">
+            <!-- Analytics Chart -->
+            <div class="dashboard-card chart-card">
+              <div class="card-header">
+                <h3>Financial Overview</h3>
+                <span class="card-subtitle">Monthly billing vs collection trends</span>
+              </div>
+              <div class="card-body">
+                <canvas id="financeChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Recent Invoices -->
+            <div class="dashboard-card table-card">
+              <div class="card-header">
+                <h3>Recent Invoices</h3>
+                <span class="card-subtitle">Latest invoice drafts and payments</span>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Invoice No</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recent-invoices-list">
+                      <!-- Rendered by app.js -->
+                      <tr>
+                        <td colspan="6" class="table-empty">Loading recent invoices...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. INVOICE MAKER VIEW -->
+        <section id="invoice-maker-view" class="view-section">
+          <!-- Sub tab bar inside Invoice Maker -->
+          <div class="invoice-maker-tabs" style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <button class="btn tab-btn active" id="tab-create-invoice">
+              <i class="ph-bold ph-file-plus"></i> New/Edit Invoice
+            </button>
+            <button class="btn tab-btn" id="tab-list-invoices">
+              <i class="ph-bold ph-list-bullets"></i> All Invoices List
+            </button>
+          </div>
+
+          <!-- Tab 1: Creator Grid -->
+          <div class="invoice-maker-grid" id="invoice-creator-container">
+            <!-- Left Side: Creator Form -->
+            <div class="invoice-form-card">
+              <div class="form-section-header">
+                <h3><i class="ph-bold ph-file-plus"></i> Invoice Details</h3>
+              </div>
+              <form id="invoice-form">
+                <!-- Row 1: Invoice Number & Date -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="inv-number">Invoice Number</label>
+                    <input type="text" id="inv-number" readonly class="input-readonly">
+                  </div>
+                  <div class="form-group">
+                    <label for="inv-date">Invoice Date</label>
+                    <input type="date" id="inv-date" required>
+                  </div>
+                </div>
+
+                <!-- Row 2: Client Selection -->
+                <div class="form-section-header">
+                  <h3><i class="ph-bold ph-user"></i> Client Information</h3>
+                </div>
+                <div class="form-group">
+                  <label for="inv-client-select">Select Client</label>
+                  <select id="inv-client-select">
+                    <option value="custom">-- New Client / Custom Input --</option>
+                    <!-- Dynamically populated -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="inv-client-name">Client Name (To)</label>
+                  <input type="text" id="inv-client-name" required placeholder="Enter client/company name">
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="inv-client-email">Email Address</label>
+                    <input type="email" id="inv-client-email" placeholder="client@example.com">
+                  </div>
+                  <div class="form-group">
+                    <label for="inv-client-phone">Phone Number</label>
+                    <input type="text" id="inv-client-phone" placeholder="Enter contact number">
+                  </div>
+                </div>
+
+                <!-- Row 3: Items Details -->
+                <div class="form-section-header">
+                  <h3><i class="ph-bold ph-list-numbers"></i> Line Items</h3>
+                </div>
+                <div id="invoice-items-inputs">
+                  <!-- Row header labels -->
+                  <div class="item-input-row header">
+                    <span class="col-title">Item Title</span>
+                    <span class="col-price">Price (₹)</span>
+                    <span class="col-qty">Qty</span>
+                    <span class="col-total">Total (₹)</span>
+                    <span class="col-action"></span>
+                  </div>
+                  
+                  <div class="items-list-container" id="items-list-inputs">
+                    <!-- Default first item row -->
+                    <div class="item-input-row item-row" data-index="0">
+                      <input type="text" class="item-title" placeholder="Description of item/service" required>
+                      <input type="number" class="item-price" min="0" step="0.01" placeholder="0.00" required>
+                      <input type="number" class="item-qty" min="1" step="1" value="1" required>
+                      <span class="item-total-val">₹0.00</span>
+                      <button type="button" class="btn-icon btn-delete-row" disabled><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                  </div>
+                  
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-add-item-row" style="margin-top: 10px;">
+                    <i class="ph-bold ph-plus"></i> Add Item
+                  </button>
+                </div>
+
+                <!-- Row 4: Discount & Status -->
+                <div class="form-section-header">
+                  <h3><i class="ph-bold ph-percent"></i> Discount & Options</h3>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Discount Type</label>
+                    <div class="toggle-switch-container">
+                      <label class="toggle-option">
+                        <input type="radio" name="discount-type" value="rupees" checked>
+                        <span>Rupees (₹)</span>
+                      </label>
+                      <label class="toggle-option">
+                        <input type="radio" name="discount-type" value="percentage">
+                        <span>Percentage (%)</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inv-discount-value">Discount Value</label>
+                    <input type="number" id="inv-discount-value" min="0" step="0.01" value="0" placeholder="0.00">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="inv-status">Payment Status</label>
+                    <select id="inv-status">
+                      <option value="Outstanding">Outstanding (Unpaid)</option>
+                      <option value="Received">Received (Paid)</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right Side: Live Template Preview -->
+            <div class="invoice-preview-card">
+              <div class="preview-actions">
+                <span class="preview-title"><i class="ph-bold ph-eye"></i> Layout Preview</span>
+                <div class="action-buttons">
+                  <button class="btn btn-secondary" id="btn-save-invoice">
+                    <i class="ph-bold ph-floppy-disk"></i> Save
+                  </button>
+                  <button class="btn btn-secondary" id="btn-download-pdf">
+                    <i class="ph-bold ph-download-simple"></i> Download PDF
+                  </button>
+                  <button class="btn btn-primary" id="btn-email-invoice">
+                    <i class="ph-bold ph-paper-plane"></i> Send Mail
+                  </button>
+                </div>
+              </div>
+
+              <!-- Interactive A4 Sheet Preview -->
+              <div class="a4-container">
+                <div id="invoice-sheet" class="a4-sheet">
+                  <!-- Dynamic layout elements rendered here -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Manage Invoices Table -->
+          <div class="invoice-list-container hide" id="invoice-list-container" style="background: var(--bg-card); padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+              <div>
+                <h3 style="font-size: 18px; font-weight: 700;">All Generated Bills</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">View, edit, or delete invoice records</p>
+              </div>
+              <div class="search-box" style="width: 280px;">
+                <i class="ph-bold ph-magnifying-glass"></i>
+                <input type="text" id="maker-invoice-search" placeholder="Search by number or client...">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Invoice No</th>
+                    <th>Client Name</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>State</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="maker-invoices-list-tbody">
+                  <!-- Loaded via JS -->
+                  <tr>
+                    <td colspan="7" class="table-empty">Loading invoices list...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. CLIENTS VIEW -->
+        <section id="clients-view" class="view-section">
+          <!-- Actions & Search -->
+          <div class="clients-actions-bar">
+            <div class="search-box">
+              <i class="ph-bold ph-magnifying-glass"></i>
+              <input type="text" id="client-search" placeholder="Search clients by name, phone, email...">
+            </div>
+          </div>
+
+          <!-- Clients Grid -->
+          <div class="clients-grid" id="clients-card-container">
+            <!-- Rendered by app.js -->
+            <div class="loading-spinner">Loading clients...</div>
+          </div>
+        </section>
+
+        <!-- 4. TEMPLATE EDITOR VIEW -->
+        <section id="template-editor-view" class="view-section">
+          <div class="template-editor-grid">
+            <!-- Left Side: Customization panel -->
+            <div class="editor-settings-card">
+              <div class="card-header">
+                <h3>Invoice Layout Controls</h3>
+                <p class="card-subtitle">Adjust positions, font sizes, and layout styles</p>
+              </div>
+              <div class="settings-body">
+                <!-- Logo Controls -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Logo Controls</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Show Logo</label>
+                      <input type="checkbox" id="temp-logo-visible" checked>
+                    </div>
+                    <div class="control-row">
+                      <label>Logo Width (px)</label>
+                      <input type="range" id="temp-logo-width" min="80" max="250" value="140">
+                      <span class="range-val" id="val-logo-width">140px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Margin Bottom (px)</label>
+                      <input type="range" id="temp-logo-margin" min="0" max="50" value="15">
+                      <span class="range-val" id="val-logo-margin">15px</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Company Info Controls -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Company Header Info</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Show Company Info</label>
+                      <input type="checkbox" id="temp-company-visible" checked>
+                    </div>
+                    <div class="control-row">
+                      <label>Font Size (px)</label>
+                      <input type="range" id="temp-company-size" min="10" max="18" value="13">
+                      <span class="range-val" id="val-company-size">13px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Margin Bottom (px)</label>
+                      <input type="range" id="temp-company-margin" min="0" max="50" value="20">
+                      <span class="range-val" id="val-company-margin">20px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Text Align</label>
+                      <select id="temp-company-align">
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                        <option value="center">Center</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Client & Invoice Info Layout -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Details & Metadata Blocks</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Show Client Info</label>
+                      <input type="checkbox" id="temp-client-visible" checked>
+                    </div>
+                    <div class="control-row">
+                      <label>Client Font Size (px)</label>
+                      <input type="range" id="temp-client-size" min="11" max="18" value="14">
+                      <span class="range-val" id="val-client-size">14px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Show Invoice Info</label>
+                      <input type="checkbox" id="temp-invoice-visible" checked>
+                    </div>
+                    <div class="control-row">
+                      <label>Invoice Font Size (px)</label>
+                      <input type="range" id="temp-invoice-size" min="11" max="18" value="14">
+                      <span class="range-val" id="val-invoice-size">14px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Details Layout</label>
+                      <select id="temp-details-columns">
+                        <option value="2">2 Columns (Side-by-Side)</option>
+                        <option value="1">1 Column (Stacked)</option>
+                      </select>
+                    </div>
+                    <div class="control-row">
+                      <label>Margin Bottom (px)</label>
+                      <input type="range" id="temp-details-margin" min="5" max="50" value="20">
+                      <span class="range-val" id="val-details-margin">20px</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Table Styling -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Items Table Style</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Table Font Size (px)</label>
+                      <input type="range" id="temp-table-size" min="10" max="16" value="12">
+                      <span class="range-val" id="val-table-size">12px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Header Color</label>
+                      <input type="color" id="temp-table-header" value="#005bb5">
+                    </div>
+                    <div class="control-row">
+                      <label>Header Text Color</label>
+                      <input type="color" id="temp-table-header-text" value="#ffffff">
+                    </div>
+                    <div class="control-row">
+                      <label>Row Padding (px)</label>
+                      <input type="range" id="temp-table-padding" min="4" max="20" value="10">
+                      <span class="range-val" id="val-table-padding">10px</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Totals Alignment -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Totals Section</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Font Size (px)</label>
+                      <input type="range" id="temp-totals-size" min="11" max="18" value="13">
+                      <span class="range-val" id="val-totals-size">13px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Margin Top (px)</label>
+                      <input type="range" id="temp-totals-margin" min="5" max="50" value="15">
+                      <span class="range-val" id="val-totals-margin">15px</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Terms & Conditions</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Show Terms</label>
+                      <input type="checkbox" id="temp-terms-visible" checked>
+                    </div>
+                    <div class="control-row">
+                      <label>Font Size (px)</label>
+                      <input type="range" id="temp-terms-size" min="8" max="14" value="10">
+                      <span class="range-val" id="val-terms-size">10px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Margin Top (px)</label>
+                      <input type="range" id="temp-terms-margin" min="5" max="50" value="25">
+                      <span class="range-val" id="val-terms-margin">25px</span>
+                    </div>
+                    <div class="control-group">
+                      <label for="temp-terms-content">Terms Content</label>
+                      <textarea id="temp-terms-content" rows="4" style="width: 100%; margin-top: 5px; font-family: inherit; font-size: 12px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical;"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Signatures -->
+                <div class="settings-accordion">
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Signature Section</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="control-row">
+                      <label>Show Signatures</label>
+                      <input type="checkbox" id="temp-sig-visible" checked>
+                    </div>
+                    <div class="control-row">
+                      <label>Sig Height (px)</label>
+                      <input type="range" id="temp-sig-height" min="30" max="120" value="60">
+                      <span class="range-val" id="val-sig-height">60px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Margin Top (px)</label>
+                      <input type="range" id="temp-sig-margin" min="10" max="80" value="40">
+                      <span class="range-val" id="val-sig-margin">40px</span>
+                    </div>
+                    <div class="control-row">
+                      <label>Client Label</label>
+                      <input type="text" id="temp-sig-client-label" value="Client Signature">
+                    </div>
+                    <div class="control-row">
+                      <label>Authorized Label</label>
+                      <input type="text" id="temp-sig-auth-label" value="Authorized Signatory">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Save template action -->
+                <div class="action-footer">
+                  <button class="btn btn-secondary" id="btn-reset-template">
+                    <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset
+                  </button>
+                  <button class="btn btn-primary" id="btn-save-template">
+                    <i class="ph-bold ph-check"></i> Save Layout
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side: Interactive Preview -->
+            <div class="editor-preview-card">
+              <div class="preview-actions">
+                <span class="preview-title"><i class="ph-bold ph-frame-corners"></i> Interactive Mockup</span>
+                <span class="preview-help">Adjust sliders on the left to see live visual updates.</span>
+              </div>
+              <div class="a4-container">
+                <div id="editor-invoice-sheet" class="a4-sheet editor-mockup">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- EMAIL MODAL -->
+  <div class="modal-backdrop" id="email-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-paper-plane"></i> Send Invoice by Email</h3>
+        <button class="modal-close" id="btn-close-email-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>The invoice PDF will be generated and sent via email.</p>
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="modal-to-email">Recipient Email Address</label>
+          <input type="email" id="modal-to-email" required placeholder="client@example.com">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-email">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-email">
+          <i class="ph-bold ph-paper-plane"></i> Send Email
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT DETAIL VIEW MODAL -->
+  <div class="modal-backdrop" id="client-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="client-modal-title">Client Invoices</h3>
+        <button class="modal-close" id="btn-close-client-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="client-modal-meta">
+          <div class="meta-item">
+            <span class="meta-label">Email:</span>
+            <span class="meta-val" id="client-modal-email">---</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Phone:</span>
+            <span class="meta-val" id="client-modal-phone">---</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Total Billed:</span>
+            <span class="meta-val highlight" id="client-modal-billed">₹0.00</span>
+          </div>
+        </div>
+        <div class="table-responsive" style="margin-top: 20px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Invoice No</th>
+                <th>Invoice Date</th>
+                <th>Subtotal</th>
+                <th>Discount</th>
+                <th>Roundoff</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="client-invoices-list">
+              <!-- Rendered by js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-notification hide">
+    <span id="toast-message">Invoice saved successfully.</span>
+  </div>
+
+  <!-- App Logic -->
+  <script src="app.js"></script>
+  <script>
+    // Global accordion toggle for template editor sidebar
+    function toggleAccordion(header) {
+      const parent = header.parentElement;
+      parent.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

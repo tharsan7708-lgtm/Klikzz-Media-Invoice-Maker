@@ -1,0 +1,19 @@
+{
+  "name": "klikzz-media-invoice-maker",
+  "version": "1.0.0",
+  "description": "Invoice Maker for Klikzz Media with Dashboard, Clients, Templates, and Email support",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.7",
+    "nodemailer": "^6.9.13"
+  }
+}
